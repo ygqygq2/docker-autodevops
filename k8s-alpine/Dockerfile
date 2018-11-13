@@ -11,7 +11,7 @@ RUN apk add -U openssl curl tar gzip bash ca-certificates git \
   && curl -L -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-2.28-r0.apk \
   && apk add glibc-2.28-r0.apk \
   && rm glibc-2.28-r0.apk \
-  && curl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl \
+  && curl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl -o /usr/bin/kubectl \
   && chmod +x /usr/bin/kubectl \
   && curl "https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSION}-linux-amd64.tar.gz" | tar zx \
   && mv linux-amd64/helm /usr/bin/ \
