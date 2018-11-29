@@ -6,7 +6,7 @@ ENV KUBE_VERSION="v1.12.1" \
   HELM_VERSION="v2.11.0"
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
-RUN apk add -U openssl curl tar gzip bash ca-certificates git \
+RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash-completion \
   && curl -L -o /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
   && curl -L -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-2.28-r0.apk \
   && apk add glibc-2.28-r0.apk \
@@ -15,9 +15,11 @@ RUN apk add -U openssl curl tar gzip bash ca-certificates git \
   && chmod +x /usr/bin/kubectl \
   && curl "https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSION}-linux-amd64.tar.gz" | tar zx \
   && mv linux-amd64/helm /usr/bin/ \
-  && mv linux-amd64/tiller /usr/bin/ 
+  && mv linux-amd64/tiller /usr/bin/ \
+  && rm -rf /var/cache/apk/* \
+  && /bin/bash
 
 ENTRYPOINT ["helm"]
 # ENTRYPOINT ["tiller"]
 # ENTRYPOINT ["kubectl"]
-CMD ["version --client"]
+CMD ["version", "--client"]

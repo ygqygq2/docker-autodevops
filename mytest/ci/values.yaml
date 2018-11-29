@@ -1,0 +1,85 @@
+# Default values for framework.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# 副本个数
+replicaCount: 1
+
+# 容器image及tag
+image:
+  repository: reg.domain.com/pub/dockerImageName
+  tag: dockerTag
+  pullPolicy: Always  # IfNotPresent: 有则不拉（减少流量和操作步骤），Always: 不管tag总拉（适合tag不变时更新）
+  imagePullSecrets:   # 如果需要docker仓库验证
+
+service:
+  type: ClusterIP  # 一般不用修改
+  ports:
+    web:  # 多端口暴露时，复制一段，和targetPort注意名称
+      port: 8080  # Service port number for client-a port.
+      protocol: TCP  # Service port protocol for client-a port.
+    debug:
+      port: 5005  # Service port number for client-b port.
+      protocol: TCP  # Service port protocol for client-b port.
+
+## liveness and readiness 
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+healthCheck:
+  enabled: true
+  type: tcp  # http/tcp
+  port: web  # 上面的端口名或端口
+  httpPath: '/'  # http时必须设置
+  livenessInitialDelaySeconds: 10  # 初始延迟秒数
+  livenessPeriodSeconds: 10  # 检测周期，默认值10，最小为1
+  readinessInitialDelaySeconds: 10  # 初始延迟秒数
+  readinessPeriodSeconds: 10   # 检测周期，默认值10，最小为1
+
+resources: 
+  # 容器资源设置
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+## Node labels and tolerations for pod assignment
+### ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+### ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistentVolume:   # 是否存储持久化
+  enabled: false
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, azure-disk on
+  ##   Azure, standard on GKE, AWS & OpenStack)
+  ##
+  storageClass: "-"  # 可选，ceph-rbd（默认）和cephfs（可多pod共享存储）
+  accessMode: ReadWriteOnce
+  annotations: {}
+  size: 2Gi  # 大小
+  existingClaim: {}  # 使用已存在的pvc
+
+ingress:  # 是否使用nginx暴露域名或端口
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
