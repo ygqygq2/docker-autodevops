@@ -40,7 +40,7 @@ variables:
   PRODUCTION_REPLICAS: "10"
 
 
-stages:
+stages:  # 整个ci/cd的job
   - build  # 打包，上传docker image
   - test  # 测试docker image
   - review  # 审核
@@ -54,14 +54,14 @@ stages:
   - incremental rollout 100%
   - cleanup
 
-build:
-  stage: build
-  image: reg.domain.com/library/maven:3.6.0-jdk-8-alpine
-  script:
+build:  # 名为build的job
+  stage: build  # 属于名为build的stage
+  image: reg.domain.com/library/maven:3.6.0-jdk-8-alpine  # 运行pod时使用的docker image
+  script:  # 脚本按顺序运行
     - setup_docker
     - build
-  only:
-    - branches
+  only:  # 此job执行条件
+    - branches  # 只有分支
 
 test:
   stage: test
@@ -70,17 +70,17 @@ test:
     - /bin/sh -c 'sleep 15'  # 能运行15秒，认为他是正常，只作为示例
   only:
     - branches
-  except:
-    variables:
-      - $TEST_DISABLED
+  except:  # 除了以下条件
+    variables:  # 变量设置
+      - $TEST_DISABLED  # 变量设置了，即不为空
 
-zaproxy:
+zaproxy: 
   stage: zaproxy
-  allow_failure: true
+  allow_failure: true  # 可允许失败，即此job失败，不会导致整个CI/CD失败
   image: reg.domain.com/pub/zap2docker-weekly:latest  
   script:
     - zaproxy
-  artifacts:
+  artifacts:  # 此job产物，可以Gitlab pipeline处下载
     paths: [report.html]
   only:
     refs:
@@ -122,20 +122,20 @@ review:
 stop_review:
   stage: cleanup
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: none  # 定义变量，如果上面已定义，此处覆盖上面定义的
   script:
     - install_dependencies
     - initialize_tiller
     - delete $DEV_NAMESPACE review
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
-  when: manual
+  environment:  # 环境
+    name: review/$CI_COMMIT_REF_NAME  # 支持多个子环境
+    action: stop  # 支持stop动作停止
+  when: manual  # 手动触发
   allow_failure: true
   only:
     refs:
       - branches
-    kubernetes: active
+    kubernetes: active  # kubernetes为可用状态时
   except:
     refs:
       - master
@@ -160,7 +160,7 @@ staging:
     - deploy $DEV_NAMESPACE
   environment:
     name: staging
-    url: http://${DEV_NAMESPACE}-${CI_PROJECT_NAME}-${CHART_NAME}.$DEV_NAMESPACE:8080
+    url: http://${DEV_NAMESPACE}-${CI_PROJECT_NAME}-${CHART_NAME}.$DEV_NAMESPACE:8080  # 环境url定义
   only:
     refs:
       - master
@@ -193,7 +193,7 @@ uat:
     variables:
       - $UAT_ENABLED
 
-.production: &production_template
+.production: &production_template  # 隐藏然后定义一个anchor，名为'production_template'
   stage: production
   script:
     - check_kube_domain
@@ -212,7 +212,7 @@ uat:
     paths: [environment_url.txt]
 
 production:
-  <<: *production_template
+  <<: *production_template  # 合并以下内容到别名production_template中
   only:
     refs:
       - master
@@ -333,7 +333,7 @@ rollout 100%:
 
 # ---------------------------------------------------------------------------
 
-.auto_devops: &auto_devops |
+.auto_devops: &auto_devops |  # | 表示下面都为其下面的内容，一般yaml用法
   # Auto DevOps variables and functions
   [[ "$TRACE" ]] && set -x
   # Extract "MAJOR.MINOR" from CI_SERVER_VERSION and generate "MAJOR-MINOR-stable" for Security Products
@@ -766,5 +766,5 @@ rollout 100%:
     fi
   }
 
-before_script:
-  - *auto_devops
+before_script:  # 定义在每个job之前运行的命令
+  - *auto_devops  # * 包括命名的anchor（auto_devops）
