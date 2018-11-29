@@ -1,5 +1,5 @@
 FROM docker:stable-dind
-LABEL maintainer "yangguangqing@ut.cn"
+LABEL maintainer "29ygq@sina.com"
 RUN apk update \
    && apk upgrade \
    && apk add --no-cache bash \
