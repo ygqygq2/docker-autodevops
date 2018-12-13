@@ -2,7 +2,7 @@ FROM alpine:latest
 
 LABEL maintainer "29ygq@sina.com"
 
-ENV KUBE_VERSION="v1.12.1" \
+ENV KUBE_VERSION="v1.13.0" \
   HELM_VERSION="v2.11.0"
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
