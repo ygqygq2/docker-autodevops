@@ -100,7 +100,7 @@ review:
     - download_chart
     - ensure_namespace $DEV_NAMESPACE
     - initialize_tiller
-    - create_secret
+    - create_secret $DEV_NAMESPACE
     - deploy $DEV_NAMESPACE review
     - persist_environment_url
   environment:
@@ -156,7 +156,7 @@ staging:
     - download_chart
     - ensure_namespace $DEV_NAMESPACE
     - initialize_tiller
-    - create_secret
+    - create_secret $DEV_NAMESPACE
     - deploy $DEV_NAMESPACE
   environment:
     name: staging
@@ -180,7 +180,7 @@ uat:
     - download_chart
     - ensure_namespace $UAT_NAMESPACE
     - initialize_tiller
-    - create_secret
+    - create_secret $UAT_NAMESPACE
     - deploy $UAT_NAMESPACE
   environment:
     name: uat
@@ -201,7 +201,7 @@ uat:
     - download_chart
     - ensure_namespace $PROD_NAMESPACE
     - initialize_tiller
-    - create_secret
+    - create_secret $PROD_NAMESPACE
     - deploy $PROD_NAMESPACE
     - delete $PROD_NAMESPACE rollout
     - persist_environment_url
@@ -249,7 +249,7 @@ production_manual:
     - download_chart
     - ensure_namespace $PROD_NAMESPACE
     - initialize_tiller
-    - create_secret
+    - create_secret $PROD_NAMESPACE
     - deploy $PROD_NAMESPACE rollout $ROLLOUT_PERCENTAGE
     - scale $PROD_NAMESPACE stable $((100-ROLLOUT_PERCENTAGE))
     - persist_environment_url
