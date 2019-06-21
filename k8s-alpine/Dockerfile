@@ -2,8 +2,8 @@ FROM alpine:latest
 
 LABEL maintainer "29ygq@sina.com"
 
-ENV KUBE_VERSION="v1.13.0" \
-  HELM_VERSION="v2.11.0"
+ENV KUBE_VERSION="v1.13.4" \
+  HELM_VERSION="v2.13.0"
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
 RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash-completion \
