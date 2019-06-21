@@ -6,7 +6,7 @@ ENV KUBE_VERSION="v1.13.4" \
   HELM_VERSION="v2.13.0"
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
-RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash-completion \
+RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash-completion xmlstarlet \
   && curl -L -o /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
   && curl -L -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-2.28-r0.apk \
   && apk add glibc-2.28-r0.apk \
