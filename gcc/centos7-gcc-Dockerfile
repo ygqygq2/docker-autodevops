@@ -1,0 +1,22 @@
+FROM centos:7
+
+LABEL maintainer=yangguangqing@ut.cn
+
+WORKDIR /tmp
+
+RUN yum -y install centos-release-scl epel-release \
+  && yum -y install devtoolset-4-toolchain xmlstarlet git make cmake \
+  && scl enable devtoolset-4 bash \
+  && source /opt/rh/devtoolset-4/enable \
+  && echo 'source /opt/rh/devtoolset-4/enable' >> /etc/profile \
+  && git clone --depth=1 https://github.com/google/googletest \
+  && cd googletest \
+  && mkdir build \
+  && cd build \
+  && cmake .. \
+  && make \
+  && make install \
+  && cd /tmp && rm -rf googletest \
+  && rm -rf /var/cache/yum/*
+
+ENV PATH=$PATH:/opt/rh/devtoolset-4/root/usr/bin/
