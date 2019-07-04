@@ -4,4 +4,4 @@
 
 # Supported tags and respective `Dockerfile` links
 
-- [`7-gcc-scl`, `latest` (*Dockerfile*)](https://github.com/ygqygq2/kubernetes-gitlab-autodevops/blob/master/gcc/centos7-gcc-Dockerfile) [![](https://images.microbadger.com/badges/image/ygqygq2/centos.svg)](http://microbadger.com/images/ygqygq2/centos"Get your own image badge on microbadger.com")
+- [`k8s-alpine`, `alpine`, `latest` (*Dockerfile*)](https://github.com/ygqygq2/kubernetes-gitlab-autodevops/blob/master/k8s-alpine/Dockerfile) [![](https://images.microbadger.com/badges/image/ygqygq2/k8s-alpine.svg)](http://microbadger.com/images/ygqygq2/k8s-alpine "Get your own image badge on microbadger.com")    
