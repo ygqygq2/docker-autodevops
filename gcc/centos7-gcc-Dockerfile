@@ -1,11 +1,12 @@
 FROM centos:7
 
-LABEL maintainer=yangguangqing@ut.cn
+LABEL maintainer=29ygq@sina.com
 
 WORKDIR /tmp
 
 RUN yum -y install centos-release-scl epel-release \
-  && yum -y install devtoolset-4-toolchain xmlstarlet git make cmake \
+  && yum -y install devtoolset-4-toolchain xmlstarlet git python-pip make cmake java-1.8.0-openjdk java-1.8.0-openjdk-devel \
+  && pip install gcovr \
   && scl enable devtoolset-4 bash \
   && source /opt/rh/devtoolset-4/enable \
   && echo 'source /opt/rh/devtoolset-4/enable' >> /etc/profile \
