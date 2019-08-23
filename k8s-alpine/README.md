@@ -1,6 +1,6 @@
 # k8s-alpine
 
-![Docker Automated build](https://img.shields.io/docker/automated/ygqygq2/k8s-alpine.svg) ![Docker Build Status](https://img.shields.io/docker/build/ygqygq2/k8s-alpine.svg) ![Docker Stars](https://img.shields.io/docker/stars/ygqygq2/k8s-alpine.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/ygqygq2/k8s-alpine.svg)
+![Docker Automated build](https://img.shields.io/docker/cloud/automated/ygqygq2/k8s-alpine.svg) ![Docker Build Status](https://img.shields.io/docker/cloud/build/ygqygq2/k8s-alpine.svg) ![Docker Stars](https://img.shields.io/docker/stars/ygqygq2/k8s-alpine.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/ygqygq2/k8s-alpine.svg)
 
 # Supported tags and respective `Dockerfile` links
 
