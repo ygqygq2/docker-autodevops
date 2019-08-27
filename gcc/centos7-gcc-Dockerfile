@@ -5,7 +5,7 @@ LABEL maintainer=29ygq@sina.com
 WORKDIR /tmp
 
 RUN yum -y install centos-release-scl epel-release \
-  && yum -y install devtoolset-4-toolchain xmlstarlet git python-pip make cmake java-1.8.0-openjdk java-1.8.0-openjdk-devel \
+  && yum -y install devtoolset-4-toolchain xmlstarlet git python-pip curl make cmake java-1.8.0-openjdk java-1.8.0-openjdk-devel \
   && pip install gcovr \
   && scl enable devtoolset-4 bash \
   && source /opt/rh/devtoolset-4/enable \
