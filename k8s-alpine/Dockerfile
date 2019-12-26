@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.11.2
 
 LABEL maintainer "29ygq@sina.com"
 
@@ -19,7 +19,4 @@ RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash
   && rm -rf /var/cache/apk/* \
   && /bin/bash
 
-ENTRYPOINT ["helm"]
-# ENTRYPOINT ["tiller"]
-# ENTRYPOINT ["kubectl"]
-CMD ["version", "--client"]
+CMD ["/bin/bash"]
