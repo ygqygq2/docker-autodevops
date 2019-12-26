@@ -19,4 +19,4 @@ RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash
   && rm -rf /var/cache/apk/* \
   && /bin/bash
 
-CMD ["/bin/bash"]
+CMD ["sleep", "Infinity"]
