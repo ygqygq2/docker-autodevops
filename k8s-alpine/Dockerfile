@@ -1,9 +1,12 @@
-FROM alpine:3.11.5
+FROM alpine:latest
 
 LABEL maintainer "29ygq@sina.com"
 
-ENV KUBE_VERSION="v1.14.5" \
-  HELM_VERSION="v3.1.2"
+ARG KUBE_VERSION
+ARG HELM_VERSION
+
+ENV KUBE_VERSION=${KUBE_VERSION} \
+    HELM_VERSION=${HELM_VERSION}
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
 RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash-completion xmlstarlet tzdata \
@@ -13,12 +16,23 @@ RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash
   && curl -L -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-2.28-r0.apk \
   && apk add glibc-2.28-r0.apk \
   && rm glibc-2.28-r0.apk \
-  && curl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl -o /usr/bin/kubectl \
+  && rm -rf /var/cache/apk/*
+
+RUN echo "${KUBE_VERSION}" "${HELM_VERSION}"
+
+RUN if [ -z "${KUBE_VERSION}" ]; then \
+      KUBE_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt); \
+    fi \ 
+  && if [ -z "${HELM_VERSION}" ]; then \
+      HELM_VERSION=$(wget -qO- -t5 -T10 "https://api.github.com/repos/helm/helm/releases/latest" \
+      | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'); \
+    fi \
+  && echo "${KUBE_VERSION}" "${HELM_VERSION}" \
+  && curl "https://dl.k8s.io/release/${KUBE_VERSION}/bin/linux/amd64/kubectl" -o /usr/bin/kubectl \
   && chmod +x /usr/bin/kubectl \
-  && curl "https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSION}-linux-amd64.tar.gz" | tar zx \
-  && mv linux-amd64/helm /usr/bin/ \
-  && mv linux-amd64/tiller /usr/bin/ \
-  && rm -rf /var/cache/apk/* \
-  && /bin/bash
+  && curl "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" | tar zx \
+  && mv linux-amd64/helm /usr/bin/ 
+
+RUN /bin/bash
 
 CMD ["sleep", "Infinity"]
