@@ -70,7 +70,7 @@ jobs:
             let issues_author;
 
             const ev = JSON.parse(
-              fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8');
+              fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
             )
 
             let issue_number = (ev.issues || {'number': -1})['number'];
