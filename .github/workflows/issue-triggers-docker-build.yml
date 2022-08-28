@@ -19,9 +19,6 @@ jobs:
       DOCKER_CONTEXT: ${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}
       SUCCESS: ${{ steps.successCheck.outputs.SUCCESS }}
 
-    permissions:
-      packages: write
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -52,6 +49,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const fs = require('fs');
+
             function getStat(path){
               return new Promise((resolve, reject) => {
                 fs.stat(path, (err, stats) => {
@@ -64,19 +62,10 @@ jobs:
               })
             }
 
-            const ev = JSON.parse(
-              fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
-            );
-
-            // 获取 issue_number
-            // const issue_number = ev.issue.number;
-            const issue_number = 13;
-
             // 使用 title 获取  docker context
-            // const title = ev?.issue?.title || '';
-            const title = 'k8s-alpine';
+            const title = context?.payload?.issue?.title || '';
             // 使用 body 获取 build-arg
-            const body = ev?.issue?.body || '';
+            const body = context?.payload?.issue?.body || '';
 
             // 使用 年-月-日-时-分 为 docker tag
             const time = new Date(new Date().getTime()+(parseInt(new Date().getTimezoneOffset()/60) + 8)*3600*1000);
@@ -86,8 +75,6 @@ jobs:
             const hour = time.getHours();
             const  minite = time.getMinutes();
             const tag = `${year}-${month}-${day}-${hour}-${minite}`;
-
-            core.setOutput('ISSUE_NUMBER', issue_number);
 
             // 判断目录是否存在
             const isExists = await getStat(title);
@@ -102,17 +89,17 @@ jobs:
               core.setOutput('BUILD_ARGS', body);
             }
 
-      # - name: Build and push Docker images
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     context: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}"
-      #     file: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}/Dockerfile"
-      #     push: true
-      #     tags: |
-      #       ghcr.io/${{ github.repository }}/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
-      #       ygqygq2/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
-      #     build-args: |
-      #       ${{ steps.getIssueInfo.outputs.BUILD_ARGS }}
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3
+        with:
+          context: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}"
+          file: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}/Dockerfile"
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
+            ygqygq2/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
+          build-args: |
+            ${{ steps.getIssueInfo.outputs.BUILD_ARGS }}
 
       - name: Success check
         id: successCheck
@@ -128,13 +115,55 @@ jobs:
         uses: actions/github-script@v6
         if: ${{ always() }}
         with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            if (${{ steps.getIssueInfo.outputs.ISSUE_NUMBER }} > 0){
-              const issuesResponse = await github.rest.issues.update({
+            const issuesResponse = await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: "closed"
+            });
+            console.log("update issues resp:", issuesResponse["status"] == 200 ? "success" : "failed" );
+
+            let labels = [];
+            let body = "构建失败,详见 [构建任务](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/actions/runs/" + github.run_id + ")";
+            const success = String(${{ steps.successCheck.outputs.SUCCESS }}).toLowerCase() == "true";
+            console.log("is success?", success);
+
+            if(success){
+              body = "构建完成";
+              labels = ['success'];
+            }else{
+              const jobsResponse =  await github.actions.listJobsForWorkflowRun({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: ${{ steps.getIssueInfo.outputs.ISSUE_NUMBER }},
-                state: 'closed'
+                run_id: ${{ github.run_id }}
               });
-              // console.log("update issues resp:", issuesResponse["status"] == 200 ? "success" : "failed" );
+              console.log("jobs",jobsResponse['data']);
+
+              body += "\n\n 日志:\n\n";
+              for(let job of jobsResponse['data']['jobs']){
+                  body += "- ["+job.name+"]("+job.html_url+")";
+              }
+              labels = ['failed'];
+            }
+
+            body += "请检查 Issue 名是否为仓库下目录名";
+
+            const issuesComment = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+            });
+            console.log(issuesComment);
+            console.log("create issues comment resp:", issuesComment["status"] == 201 ? "success" : "failed" );
+
+            if(labels){
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels
+              });
             }
