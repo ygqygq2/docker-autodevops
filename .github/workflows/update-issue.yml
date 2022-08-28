@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Print
         run:
-          echo ${{ context }}
+          echo ${{ github.context }}
           
       - name: Close and Open issue
         uses: actions/github-script@v5
