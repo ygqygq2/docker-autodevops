@@ -1,6 +1,6 @@
 name: Issue triggers publish docker image
 
-on: 
+on:
   issues:
     types: [opened]
   label:
@@ -23,108 +23,98 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ github.actor }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: |
-            ghcr.io/${{ github.repository }}/k8s-alpine
-            ygqygq2/k8s-alpine
-
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v2
-        with:
-          context: ./k8s-alpine
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          buildArgs: [ KUBE_VERSION=${{ env.KUBE_VERSION }}, HELM_VERSION=${{ env.HELM_VERSION }} ]
-
-      - name: get issue info
+      - name: Get issue info
         id: getIssueInfo
         uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const fs = require('fs');
-
-            let docker_context;
-            let title;
-            let issues_author;
+            function getStat(path){
+              return new Promise((resolve, reject) => {
+                fs.stat(path, (err, stats) => {
+                  if(err){
+                    resolve(false);
+                  }else{
+                    resolve(stats);
+                  }
+                })
+              })
+            }
 
             const ev = JSON.parse(
               fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
-            )
+            );
 
-            let issue_number = (ev.issues || {'number': -1})['number'];
+            // 获取 issue_number
+            // const issue_number = ev.issue.number;
+            const issue_number = 13;
 
-            if(issue_number>0){
-              const issuesResponse = await github.issues.get({
-                  owner: '${{ env.GH_USER }}',
-                  repo: '${{ env.REPO_NAME }}',
-                  issue_number: issue_number
-              });
-              title = issuesResponse.title;
-              console.log('issues opened trigger');
-            }else{
+            // 使用 title 获取  docker context
+            // const title = ev?.issue?.title || '';
+            const title = 'k8s-alpine';
+            // 使用 body 获取 build-arg
+            const body = ev?.issue?.body || '';
 
-              const issuesResponse = await github.issues.listForRepo({
-                  owner: '${{ env.GH_USER }}',
-                  repo: '${{ env.REPO_NAME }}',
-                  state: "open",
-                  labels: "created",
-                  sort: "created",
-                  direction: "desc",
-                  per_page: 1
-              });
+            // 使用 年-月-日-时-分 为 docker tag
+            const time = new Date(new Date().getTime()+(parseInt(new Date().getTimezoneOffset()/60) + 8)*3600*1000);
+            const year = time.getFullYear();
+            const month = time.getMonth() + 1;
+            const day = time.getDay();
+            const hour = time.getHours();
+            const  minite = time.getMinutes();
+            const tag = `${year}-${month}-${day}-${hour}-${minite}`;
 
-              if (Array.isArray(issuesResponse["data"]) && issuesResponse["data"].length) {
-                title = issuesResponse["data"][0]["title"];
-                issue_number = issuesResponse["data"][0]["number"];
-                issues_author = issuesResponse["data"][0]["user"]["login"];
-              }
-              console.log("schedule trigger")
-            }
-            if(issue_number>0){
-              docker_context = title.trim();
-              issues_body='';
-              is_error=false;
-              issues_body='构建进展 [https://github.com/${{ env.GH_USER }}/${{ env.REPO_NAME }}/actions/runs/${{ github.run_id }}](https://github.com/${{ env.GH_USER }}/${{ env.REPO_NAME }}/actions/runs/${{ github.run_id }})';
-              const issuesComment = await github.issues.createComment({
-                  owner: '${{ env.GH_USER }}',
-                  repo: '${{ env.REPO_NAME }}',
-                  issue_number: issue_number,
-                  body: issues_body
-              });
-              console.log("create issues comment resp:", issuesComment["status"]);
-              console.log("docker_context from issues is ", docker_context,", issue_number is ",issue_number, ",issues_author is ", issues_author);
-              if(is_error){
-                core.setFailed("Error");
-              }
-            }else{
-              core.setFailed("No docker build directory");
-            }
-            core.setOutput('DOCKER_CONTEXT', docker_context);
             core.setOutput('ISSUE_NUMBER', issue_number);
 
-      - name: success check
+            // 判断目录是否存在
+            const isExists = await getStat(title);
+            if(isExists && isExists.isDirectory()){
+              core.setOutput('DOCKER_CONTEXT', title);
+            } else {
+              core.setOutput('构建的目录不存在，请检查 issue 标题是否为目录名', false)
+            }
+
+            core.setOutput('TAG', tag);
+            if (body.length > 0) {
+              core.setOutput('BUILD_ARGS', body);
+            }
+
+      # - name: Build and push Docker images
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}"
+      #     file: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}/Dockerfile"
+      #     push: true
+      #     tags: |
+      #       ghcr.io/${{ github.repository }}/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
+      #       ygqygq2/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
+      #     build-args: |
+      #       ${{ steps.getIssueInfo.outputs.BUILD_ARGS }}
+
+      - name: Success check
         id: successCheck
         uses: actions/github-script@v6
         if: ${{ success() }}
@@ -138,52 +128,13 @@ jobs:
         uses: actions/github-script@v6
         if: ${{ always() }}
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             if (${{ steps.getIssueInfo.outputs.ISSUE_NUMBER }} > 0){
-              const issuesResponse =  await github.issues.update({
-                owner: '${{ env.GH_USER }}',
-                repo: '${{ env.REPO_NAME }}',
+              const issuesResponse = await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
                 issue_number: ${{ steps.getIssueInfo.outputs.ISSUE_NUMBER }},
                 state: 'closed'
-              })
-              console.log("update issues resp:", issuesResponse["status"] == 200 ? "success" : "failed" )
-              let body = "构建失败,详见 [构建任务](https://github.com/${{ env.GH_USER }}/${{ env.REPO_NAME }}/actions/runs/${{ github.run_id }})"
-              let success = String(${{ steps.successCheck.outputs.SUCCESS }}).toLowerCase() == "true"
-              console.log("is success?", success)
-              let labels = []
-              if(success){
-                body = "构建完成"
-                labels=['success']
-              }else{
-                const jobsResponse =  await github.actions.listJobsForWorkflowRun({
-                  owner: '${{ env.GH_USER }}',
-                  repo: '${{ env.REPO_NAME }}',
-                  run_id: ${{ github.run_id }}
-                })
-                console.log("jobs",jobsResponse['data'])
-                body+="\n\n 日志:\n\n"
-                for(let job of jobsResponse['data']['jobs']){
-                    body+="- ["+job.name+"]("+job.html_url+")"
-                }
-                labels=['failed']
-              }
-
-              body += "请检查 Issue 名是否为仓库下目录名"
-
-              const issuesComment = await github.issues.createComment({
-                  owner: '${{ env.GH_USER }}',
-                  repo: '${{ env.REPO_NAME }}',
-                  issue_number: ${{ steps.getIssueInfo.outputs.ISSUE_NUMBER }},
-                  body: body
               });
-              console.log("create issues comment resp:", issuesComment["status"] == 201 ? "success" : "failed" )
-              if(labels){
-                await github.issues.addLabels({
-                  owner: '${{ env.GH_USER }}',
-                  repo: '${{ env.REPO_NAME }}',
-                  issue_number: ${{ steps.getIssueInfo.outputs.ISSUE_NUMBER }},
-                  labels: labels
-              });
-              }
+              // console.log("update issues resp:", issuesResponse["status"] == 200 ? "success" : "failed" );
             }
