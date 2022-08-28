@@ -34,6 +34,7 @@ jobs:
           script: |
             // Open a next issue
             console.log(context)
+            console.log(context.issue)
             github.rest.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
