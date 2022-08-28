@@ -33,6 +33,7 @@ jobs:
         with:
           script: |
             // Open a next issue
+            console.log(context)
             github.rest.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
