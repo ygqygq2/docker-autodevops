@@ -1,6 +1,5 @@
 FROM gcc:latest
 
-
 RUN wget http://ftp.us.debian.org/debian/pool/main/x/xmlstarlet/xmlstarlet_1.6.1-2_amd64.deb \
   && dpkg -i xmlstarlet_1.6.1-2_amd64.deb \
   && rm -f xmlstarlet_1.6.1-2_amd64.deb \

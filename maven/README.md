@@ -5,3 +5,13 @@
 # Supported tags and respective `Dockerfile` links
 
 - [`maven`, `latest` (*Dockerfile*)](https://github.com/ygqygq2/kubernetes-gitlab-autodevops/blob/master/maven/Dockerfile) [![](https://images.microbadger.com/badges/image/ygqygq2/maven.svg)](http://microbadger.com/images/ygqygq2/maven "Get your own image badge on microbadger.com")
+
+# example
+
+## gitlab-maven-ci-demo
+[https://github.com/ygqygq2/gitlab-maven-ci-demo](https://github.com/ygqygq2/gitlab-maven-ci-demo)
+单maven项目
+
+## gitlab-multi-maven-ci-demo
+[https://github.com/ygqygq2/gitlab-multi-maven-ci-demo](https://github.com/ygqygq2/gitlab-maven-ci-demo)
+多maven项目

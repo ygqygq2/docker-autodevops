@@ -64,36 +64,54 @@ jobs:
 
             // 使用 title 获取  docker context
             const title = context?.payload?.issue?.title || '';
+
             // 使用 body 获取 build-arg
             const body = context?.payload?.issue?.body || '';
 
-            // 使用 年-月-日-时-分 为 docker tag
-            const time = new Date(new Date().getTime()+(parseInt(new Date().getTimezoneOffset()/60) + 8)*3600*1000);
-            const year = time.getFullYear();
-            const month = time.getMonth() + 1;
-            const day = time.getDay();
-            const hour = time.getHours();
-            const  minite = time.getMinutes();
-            const tag = `${year}-${month}-${day}-${hour}-${minite}`;
+            // 如果 title 中含冒号，则冒号前为构建目录，冒号后为镜像 tag
+            let dir = '';
+            let tmp_dir = '';
+            let tag = '';
+            let dockerfile = '';
 
-            // 判断目录是否存在
-            const isExists = await getStat(title);
-            if(isExists && isExists.isDirectory()){
-              core.setOutput('DOCKER_CONTEXT', title);
-            } else {
-              core.setOutput('构建的目录不存在，请检查 issue 标题是否为目录名', false)
+            [tmp_dir, tag] = title.split(':');
+            [dir, dockerfile] = tmp_dir.split('/');
+
+            if(!tag) {
+              // 使用 年-月-日-时-分 为 docker tag
+              const time = new Date(new Date().getTime()+(parseInt(new Date().getTimezoneOffset()/60) + 8)*3600*1000);
+              const year = time.getFullYear();
+              const month = time.getMonth() + 1;
+              const day = time.getDay();
+              const hour = time.getHours();
+              const  minite = time.getMinutes();
+              tag = `${year}-${month}-${day}-${hour}-${minite}`;
             }
 
-            core.setOutput('TAG', tag);
+            if (!dockerfile) {
+              dockerfile = 'Dockerfile';
+            }
+
+            // 判断目录是否存在
+            const isExists = await getStat(dir);
+            if(isExists && isExists.isDirectory()){
+              core.setOutput('DOCKER_CONTEXT', dir);
+            } else {
+              core.setFailed('构建的目录不存在，请检查 issue 标题是否为目录名');
+            }
+
             if (body.length > 0) {
               core.setOutput('BUILD_ARGS', body);
             }
+
+            core.setOutput('DOCKER_FILE', dockerfile);
+            core.setOutput('TAG', tag);
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3
         with:
           context: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}"
-          file: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}/Dockerfile"
+          file: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}/${{ steps.getIssueInfo.outputs.DOCKER_FILE }}"
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}
@@ -126,7 +144,7 @@ jobs:
             console.log("update issues resp:", issuesResponse["status"] == 200 ? "success" : "failed" );
 
             let labels = [];
-            let body = "构建失败,详见 [构建任务](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/actions/runs/" + github.run_id + ")";
+            let body = `构建失败,详见 [构建任务](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}})`;
             const success = String(${{ steps.successCheck.outputs.SUCCESS }}).toLowerCase() == "true";
             console.log("is success?", success);
 
@@ -134,7 +152,7 @@ jobs:
               body = "构建完成";
               labels = ['success'];
             }else{
-              const jobsResponse =  await github.actions.listJobsForWorkflowRun({
+              const jobsResponse = await github.request(`GET /repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}}/jobs`, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 run_id: ${{ github.run_id }}
@@ -145,10 +163,8 @@ jobs:
               for(let job of jobsResponse['data']['jobs']){
                   body += "- ["+job.name+"]("+job.html_url+")";
               }
-              labels = ['failed'];
+              labels = ['failure'];
             }
-
-            body += "请检查 Issue 名是否为仓库下目录名";
 
             const issuesComment = await github.rest.issues.createComment({
                 owner: context.repo.owner,
