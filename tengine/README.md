@@ -1,6 +1,6 @@
 # [tengine](http://tengine.taobao.org)
 
-[![Build Status](https://github.com/ygqygq2/docker-autodevops/workflows/issue-triggers-docker-build.yml/badge.svg)](https://github.com/ygqygq2/charts/actions) ![Docker Stars](https://img.shields.io/docker/stars/ygqygq2/tengine.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/ygqygq2/tengine.svg)
+![Build Status](https://github.com/ygqygq2/docker-autodevops/actions/workflows/issue-triggers-docker-build.yml/badge.svg) ![Docker Stars](https://img.shields.io/docker/stars/ygqygq2/tengine.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/ygqygq2/tengine.svg)
 
 # Supported tags and respective `Dockerfile` links
 
