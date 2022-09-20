@@ -6,10 +6,6 @@ on:
   label:
     types: [created]
 
-env:
-  REPO_NAME: ${{ github.event.repository.name }}
-  GH_USER: ${{ github.actor }}
-
 jobs:
   push_to_registries:
     name: Push Docker image to multiple registries
@@ -61,6 +57,16 @@ jobs:
                 })
               })
             }
+
+            // comment 显示构建进展链接
+            const issues_body = `构建进展，详见 [构建任务](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}})`
+            const issuesComment = await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: issues_body
+            });
+            console.log("create issues comment resp:", issuesComment["status"]);
 
             // 使用 title 获取  docker context
             const title = context?.payload?.issue?.title || '';
@@ -144,12 +150,12 @@ jobs:
             console.log("update issues resp:", issuesResponse["status"] == 200 ? "success" : "failed" );
 
             let labels = [];
-            let body = `构建失败,详见 [构建任务](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}})`;
+            let body = `构建失败，详见 [构建任务](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}})`;
             const success = String(${{ steps.successCheck.outputs.SUCCESS }}).toLowerCase() == "true";
             console.log("is success?", success);
 
             if(success){
-              body = "构建完成";
+              body = `构建完成，您可以使用镜像 <br/>\n\`ygqygq2/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}\``;
               labels = ['success'];
             }else{
               const jobsResponse = await github.request(`GET /repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}}/jobs`, {
