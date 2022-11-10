@@ -19,6 +19,9 @@ jobs:
       SUCCESS: ${{ steps.successCheck.outputs.SUCCESS }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Get issue info
         id: getIssueInfo
         uses: actions/github-script@v6
@@ -27,16 +30,27 @@ jobs:
           script: |
             const fs = require('fs');
 
-            function getStat(path){
+            const getStat = async (path) => {
               return new Promise((resolve, reject) => {
                 fs.stat(path, (err, stats) => {
                   if(err){
+                    console.log(err);
                     resolve(false);
                   }else{
                     resolve(stats);
                   }
                 })
               })
+            }
+
+            // 判断目录是否存在
+            const isDir = async (dir) => {
+              const isExists = await getStat(dir);
+              if(isExists && isExists.isDirectory()){
+                core.setOutput('DOCKER_CONTEXT', dir);
+              } else {
+                core.setFailed('构建的目录不存在，请检查 issue 标题是否为目录名');
+              }
             }
 
             // comment 显示构建进展链接
@@ -80,12 +94,7 @@ jobs:
             }
 
             // 判断目录是否存在
-            const isExists = await getStat(dir);
-            if(isExists && isExists.isDirectory()){
-              core.setOutput('DOCKER_CONTEXT', dir);
-            } else {
-              core.setFailed('构建的目录不存在，请检查 issue 标题是否为目录名');
-            }
+            isDir(dir);
 
             if (body.length > 0) {
               core.setOutput('BUILD_ARGS', body);
@@ -93,9 +102,6 @@ jobs:
 
             core.setOutput('DOCKER_FILE', dockerfile);
             core.setOutput('TAG', tag);
-
-      - name: Checkout
-        uses: actions/checkout@v3
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
