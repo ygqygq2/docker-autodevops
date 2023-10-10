@@ -14,9 +14,11 @@ RUN apk add -U openssl curl tar gzip bash ca-certificates git bash bash-doc bash
   && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
   && echo "Asia/Shanghai" > /etc/timezone \
   && curl -L -o /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
-  && curl -L -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.28-r0/glibc-2.28-r0.apk \
-  && apk add glibc-2.28-r0.apk \
-  && rm glibc-2.28-r0.apk \
+  && GLIBC_VERSION=$(wget -qO- -t5 -T10 "https://api.github.com/repos/sgerrand/alpine-pkg-glibc/releases/latest" \
+  | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'); \
+  && curl -L -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk \
+  && apk add glibc-${GLIBC_VERSION}.apk \
+  && rm glibc-${GLIBC_VERSION}.apk \
   && rm -rf /var/cache/apk/*
 
 RUN echo "${KUBE_VERSION}" "${HELM_VERSION}"
