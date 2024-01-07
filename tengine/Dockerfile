@@ -5,10 +5,10 @@ LABEL maintainer "29ygq@sina.com"
 
 ARG TENGINE_VERSION
 
-ENV TENGINE_VERSION="${TENGINE_VERSION:-2.3.3}" \
+ENV TENGINE_VERSION="${TENGINE_VERSION}" \
   TENGINE_BASEDIR="/usr/local/nginx"
 
-#get all the dependences and nginx
+# get all the dependences and nginx
 RUN yum install -y git gcc make wget pcre pcre-devel openssl openssl-devel \
   && rm -rf /var/cache/yum/* \
   && groupadd -g 1001 www \
@@ -21,7 +21,11 @@ WORKDIR /tmp
 
 ## comile tengine
 # tengine url: http://tengine.taobao.org/download/tengine-${TENGINE_VERSION}.tar.gz
-RUN wget http://tengine.taobao.org/download/tengine-${TENGINE_VERSION}.tar.gz \
+RUN if [ -z "$TENGINE_VERSION" ]; then \
+   TENGINE_VERSION=$(wget -qO- -t5 -T10 "https://api.github.com/repos/alibaba/tengine/releases/latest" \
+  | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'); \
+  fi \
+  && wget http://tengine.taobao.org/download/tengine-${TENGINE_VERSION}.tar.gz \
   && tar -zxf tengine-${TENGINE_VERSION}.tar.gz \
   && cd tengine-${TENGINE_VERSION} \
   && ./configure --prefix=${TENGINE_BASEDIR} --user=www --group=www \
