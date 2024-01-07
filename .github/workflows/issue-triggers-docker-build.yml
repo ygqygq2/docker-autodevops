@@ -123,8 +123,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker images
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
+          platforms: linux/amd64,linux/arm64
           context: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}"
           file: "${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}/${{ steps.getIssueInfo.outputs.DOCKER_FILE }}"
           push: true
