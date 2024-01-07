@@ -83,7 +83,7 @@ jobs:
               const time = new Date(new Date().getTime()+(parseInt(new Date().getTimezoneOffset()/60) + 8)*3600*1000);
               const year = time.getFullYear();
               const month = time.getMonth() + 1;
-              const day = time.getDay();
+              const day = time.getDate();
               const hour = time.getHours();
               const  minite = time.getMinutes();
               tag = `${year}-${month}-${day}-${hour}-${minite}`;
