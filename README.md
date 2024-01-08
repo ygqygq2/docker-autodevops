@@ -15,6 +15,9 @@ Docker for maven, add bash.
 ### tengine
 Docker for tengine
 
+### mysql-exec-sql
+Mysql client exec sql file or sql url.
+
 ## 利用 Action 自动构建镜像
 方法：
 1. 创建 [issue](../../issues/new)

@@ -1,6 +1,6 @@
 # mysql-exec-sql
 
-[Docker Stars](https://img.shields.io/docker/stars/ygqygq2/mysql-exec-sql.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/ygqygq2/mysql-exec-sql.svg)
+![Docker Stars](https://img.shields.io/docker/stars/ygqygq2/mysql-exec-sql.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/ygqygq2/mysql-exec-sql.svg)
 
 # Supported tags and respective `Dockerfile` links
 
@@ -17,8 +17,9 @@ docker run --rm -e MYSQL_HOST=10.100.206.6 -e MYSQL_PORT=3306 -e MYSQL_USER=root
 
 # Issue build
 
-name: mysql-exec-sql:tag
-body:
+Issue name: `mysql-exec-sql:tag`    
+
+body:    
 
 ```
 BASE_IMAGE=mariadb:11.0

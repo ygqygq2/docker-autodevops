@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 cd /tmp/
 
@@ -8,15 +8,22 @@ MYSQL_USER=$MYSQL_USER
 MYSQL_PASSWD=$MYSQL_PASSWD
 MYSQL_DB=$MYSQL_DB
 SQL_FILES=$SQL_FILES
-COMMAND=$(which mysql || which mariadb)
+COMMAND=${COMMAND:-/usr/bin/mysql}
 
 function log() {
     echo "$@"
 }
 
+# check command
+function check_command() {
+    if [ ! -f $COMMAND ]; then
+        [ -f /usr/bin/mariadb ] && COMMAND="/usr/bin/mariadb"
+    fi
+}
+
 # check mysql connection
 function check_conn() {
-    $COMMAND -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWD -P$MYSQL_PORT $MYSQL_DB -e "select 1;" > /dev/null
+    $COMMAND -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWD -P$MYSQL_PORT $MYSQL_DB --connect-timeout=10 -e "select 1;" > /dev/null
     return $?
 }
 
@@ -30,7 +37,7 @@ function exec_sql_file() {
             sql_file=$1
         fi
         
-        $COMMAND -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWD -P$MYSQL_PORT $MYSQL_DB < $sql_file > /dev/null 2>&1 \
+        $COMMAND -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWD -P$MYSQL_PORT $MYSQL_DB < $sql_file > /dev/stdout 2>&1 \
             || true
         shift
     done
@@ -40,21 +47,31 @@ function usage() {
     echo "sh $0 sql_files"
 }
 
-if [ -z "$SQL_FILES" ]; then
-    usage
-    exit 55
-fi
+function main() {
+    if [ -z "$SQL_FILES" ]; then
+        usage
+        exit 55
+    fi
+    
+    check_command
+    check_conn
+    if [ $? -ne 0 ]; then
+        log "Mysql connect error."
+        exit 10
+    fi
+    
+    
+    read -r -a s_files <<< "$(tr ',;' ' ' <<< "$SQL_FILES")"
+    for s_f in ${s_files[@]}; do
+        exec_sql_file $s_f
+    done
+}
 
-check_conn
-if [ $? -ne 0 ]; then
-    log "Mysql connect error."
-    exit 10
+if [ ! -z "$@" ]; then
+    exec "$@"
+else
+    main
 fi
-
-read -r -a s_files <<< "$(tr ',;' ' ' <<< "$SQL_FILES")"
-for s_f in ${s_files[@]}; do
-    exec_sql_file $s_f
-done
 
 log "Used $SECONDS seconds."
 
