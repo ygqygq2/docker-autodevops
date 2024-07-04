@@ -11,7 +11,7 @@ ENV KUBE_VERSION=${KUBE_VERSION} \
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
 RUN apk add -U openssl curl tar gzip unzip ca-certificates git bash bash-doc bash-completion \
-  xmlstarlet tzdata jq skopeo perl perl-app-cpanminus \
+  xmlstarlet tzdata jq skopeo \
   && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
   && echo "Asia/Shanghai" > /etc/timezone \
   && curl -L -o /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
@@ -22,7 +22,7 @@ RUN apk add -U openssl curl tar gzip unzip ca-certificates git bash bash-doc bas
   && rm glibc-${GLIBC_VERSION}.apk \
   && rm -rf /var/cache/apk/*
 
-RUN echo "${KUBE_VERSION}" "${HELM_VERSION}"
+# RUN echo "${KUBE_VERSION}" "${HELM_VERSION}"
 
 RUN if [ -z "${KUBE_VERSION}" ]; then \
       KUBE_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt); \
