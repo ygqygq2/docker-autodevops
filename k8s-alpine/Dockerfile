@@ -10,7 +10,7 @@ ENV KUBE_VERSION=${KUBE_VERSION} \
     LANG=en_US.UTF-8
 
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl
-RUN apk add -U openssl curl tar gzip unzip bash ca-certificates git bash bash-doc bash-completion xmlstarlet tzdata jq \
+RUN apk add -U openssl curl tar gzip unzip bash ca-certificates git bash bash-doc bash-completion xmlstarlet tzdata jq skopeo \
   && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
   && echo "Asia/Shanghai" > /etc/timezone \
   && curl -L -o /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
