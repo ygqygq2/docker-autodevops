@@ -6,10 +6,15 @@ set -e
 NVM_DIR=${NVM_DIR:-"/root/.nvm"}
 TO_INSTALL=${1}
 
-# 安装 NVM
-mkdir -p $NVM_DIR
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash -x
-echo "Installed NVM"
+# 检查是否已经安装 NVM
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  echo "NVM is already installed."
+else
+  # 安装 NVM
+  mkdir -p $NVM_DIR
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash -x
+  echo "Installed NVM"
+fi
 
 # 加载 NVM
 source $NVM_DIR/nvm.sh
