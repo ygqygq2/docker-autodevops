@@ -24,17 +24,10 @@ RUN apk update && apk upgrade && \
   echo "Asia/Shanghai" >/etc/timezone && \
   ln -sf /bin/bash /bin/sh
 
-# 安装 NVM
-RUN mkdir -p $NVM_DIR && \
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash -x && \
-  echo "Installed NVM"
+WORKDIR /app
+COPY install-node.sh .
 
-# 安装指定版本的 Node.js
-RUN . $NVM_DIR/nvm.sh && \
-  for version in $(echo $NODE_VERSION_TO_INSTALL | tr "," "\n"); do \
-    nvm install $version; \
-  done
-
+RUN chmod +x /app/install-node.sh && /bin/bash install-node.sh "${NODE_VERSION_TO_INSTALL}"
 RUN /bin/bash
 
 CMD ["sleep", "Infinity"]
