@@ -31,11 +31,10 @@ cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 echo "Asia/Shanghai" >/etc/timezone && \
 ln -sf /bin/bash /bin/sh
 
-COPY --from=builder /root/.nvm /root/.nvm
-
 WORKDIR /app
 COPY install-node.sh .
 RUN chmod +x /app/install-node.sh && /bin/bash install-node.sh
+COPY --from=builder /root/.nvm/versions /root/.nvm/versions
 
 RUN /bin/bash
 
