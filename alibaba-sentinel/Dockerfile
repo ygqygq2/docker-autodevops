@@ -2,7 +2,7 @@
 # https://github.com/alibaba/Sentinel
 
 ARG JAVA_VERSION=17
-FROM eclipse-temurin:${JAVA_VERSION}-jre-alpine
+FROM eclipse-temurin:${JAVA_VERSION}-jre
 
 LABEL maintainer="ygqygq2" \
   description="Alibaba Sentinel Dashboard" \
@@ -12,7 +12,7 @@ LABEL maintainer="ygqygq2" \
 ARG SENTINEL_VERSION=1.8.9
 
 # Create sentinel user and group
-RUN addgroup -S sentinel && adduser -S sentinel -G sentinel
+RUN groupadd -r sentinel && useradd -r -g sentinel sentinel
 
 # Set working directory
 WORKDIR /home/sentinel
@@ -21,6 +21,10 @@ WORKDIR /home/sentinel
 RUN wget -q https://github.com/alibaba/Sentinel/releases/download/${SENTINEL_VERSION}/sentinel-dashboard-${SENTINEL_VERSION}.jar \
   -O sentinel-dashboard.jar \
   && chown sentinel:sentinel sentinel-dashboard.jar
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget -q --spider http://localhost:${SENTINEL_DASHBOARD_SERVER_PORT:-8080}/health || exit 1
 
 # Switch to non-root user
 USER sentinel
@@ -33,10 +37,6 @@ ENV JAVA_OPTS="-Xms256m -Xmx512m" \
   SENTINEL_DASHBOARD_AUTH_USERNAME=sentinel \
   SENTINEL_DASHBOARD_AUTH_PASSWORD=sentinel \
   SENTINEL_DASHBOARD_SERVER_PORT=8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget -q --spider http://localhost:${SENTINEL_DASHBOARD_SERVER_PORT}/health || exit 1
 
 # Default command to start sentinel dashboard
 CMD ["sh", "-c", "java ${JAVA_OPTS} \
