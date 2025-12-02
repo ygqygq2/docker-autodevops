@@ -165,7 +165,7 @@ jobs:
             console.log("is success?", success);
 
             if(success){
-              body = `构建完成，您可以使用镜像 <br/>\n\`ygqygq2/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}\``;
+              body = `构建完成，您可以使用镜像 <br/>\n\`ygqygq2/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}\`<br/>\n\`ghcr.io/${{ github.repository }}/${{ steps.getIssueInfo.outputs.DOCKER_CONTEXT }}:${{ steps.getIssueInfo.outputs.TAG }}\``;
               labels = ['success'];
             }else{
               const jobsResponse = await github.request(`GET /repos/${context.repo.owner}/${context.repo.repo}/actions/runs/${{github.run_id}}/jobs`, {

@@ -2,7 +2,24 @@
 
 基于 [Alibaba Sentinel](https://github.com/alibaba/Sentinel) 构建的控制台 Docker 镜像。
 
+## 镜像地址
+
+| 镜像仓库                  | 地址                                       |
+| ------------------------- | ------------------------------------------ |
+| Docker Hub                | `ygqygq2/sentinel-dashboard:1.8.9`         |
+| GitHub Container Registry | `ghcr.io/ygqygq2/sentinel-dashboard:1.8.9` |
+
 ## 快速开始
+
+### 拉取镜像
+
+```bash
+# Docker Hub
+docker pull ygqygq2/sentinel-dashboard:1.8.9
+
+# GitHub Container Registry
+docker pull ghcr.io/ygqygq2/sentinel-dashboard:1.8.9
+```
 
 ### 构建镜像
 
@@ -15,7 +32,7 @@ docker build -t sentinel-dashboard:1.8.9 .
 ```bash
 docker run -d --name sentinel-dashboard \
   -p 8080:8080 \
-  sentinel-dashboard:1.8.9
+  ygqygq2/sentinel-dashboard:1.8.9
 ```
 
 访问 `http://localhost:8080`，使用默认账号 `sentinel/sentinel` 登录。
