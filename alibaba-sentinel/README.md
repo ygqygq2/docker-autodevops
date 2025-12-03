@@ -39,19 +39,30 @@ docker run -d --name sentinel-dashboard \
 
 ## 构建参数
 
-| 参数               | 默认值 | 说明          |
-| ------------------ | ------ | ------------- |
-| `JAVA_VERSION`     | 17     | JDK 版本      |
-| `SENTINEL_VERSION` | 1.8.9  | Sentinel 版本 |
+| 参数               | 默认值 | 说明                      |
+| ------------------ | ------ | ------------------------- |
+| `JAVA_VERSION`     | 17     | JDK 版本（8, 11, 17, 21） |
+| `SENTINEL_VERSION` | 最新版 | Sentinel 版本             |
+
+**版本兼容性建议**：
+
+- Sentinel < 1.8.6：推荐使用 JDK 11
+- Sentinel >= 1.8.6：推荐使用 JDK 17
 
 示例：
 
 ```bash
-# 使用 JDK 21 构建
-docker build --build-arg JAVA_VERSION=21 -t sentinel-dashboard:1.8.9 .
+# 使用默认配置（JDK 17 + 最新 Sentinel）
+docker build -t sentinel-dashboard .
 
-# 使用指定 Sentinel 版本构建
-docker build --build-arg SENTINEL_VERSION=1.8.8 -t sentinel-dashboard:1.8.8 .
+# 旧版本 Sentinel 使用 JDK 11
+docker build --build-arg JAVA_VERSION=11 --build-arg SENTINEL_VERSION=1.8.1 -t sentinel-dashboard:1.8.1 .
+
+# 使用 JDK 21 构建最新版
+docker build --build-arg JAVA_VERSION=21 -t sentinel-dashboard .
+
+# 指定具体版本组合
+docker build --build-arg JAVA_VERSION=17 --build-arg SENTINEL_VERSION=1.8.9 -t sentinel-dashboard:1.8.9 .
 ```
 
 ## 环境变量
