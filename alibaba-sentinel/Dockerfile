@@ -2,14 +2,12 @@
 # https://github.com/alibaba/Sentinel
 
 ARG JAVA_VERSION=17
+ARG SENTINEL_VERSION
+
 FROM eclipse-temurin:${JAVA_VERSION}-jre
 
 LABEL maintainer="ygqygq2" \
-  description="Alibaba Sentinel Dashboard" \
-  version="1.8.9"
-
-# Sentinel version
-ARG SENTINEL_VERSION=1.8.9
+  description="Alibaba Sentinel Dashboard"
 
 # Create sentinel user and group
 RUN groupadd -r sentinel && useradd -r -g sentinel sentinel
@@ -18,7 +16,11 @@ RUN groupadd -r sentinel && useradd -r -g sentinel sentinel
 WORKDIR /home/sentinel
 
 # Download sentinel dashboard jar
-RUN wget -q https://github.com/alibaba/Sentinel/releases/download/${SENTINEL_VERSION}/sentinel-dashboard-${SENTINEL_VERSION}.jar \
+RUN if [ -z "${SENTINEL_VERSION}" ]; then \
+      SENTINEL_VERSION=$(wget -qO- -t5 -T10 "https://api.github.com/repos/alibaba/Sentinel/releases/latest" \
+      | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g'); \
+    fi \
+  && wget -q https://github.com/alibaba/Sentinel/releases/download/${SENTINEL_VERSION}/sentinel-dashboard-${SENTINEL_VERSION}.jar \
   -O sentinel-dashboard.jar \
   && chown -R sentinel:sentinel /home/sentinel
 
