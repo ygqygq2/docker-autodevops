@@ -20,7 +20,7 @@ WORKDIR /home/sentinel
 # Download sentinel dashboard jar
 RUN wget -q https://github.com/alibaba/Sentinel/releases/download/${SENTINEL_VERSION}/sentinel-dashboard-${SENTINEL_VERSION}.jar \
   -O sentinel-dashboard.jar \
-  && chown sentinel:sentinel sentinel-dashboard.jar
+  && chown -R sentinel:sentinel /home/sentinel
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
