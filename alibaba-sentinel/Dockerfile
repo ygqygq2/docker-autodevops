@@ -2,9 +2,11 @@
 # https://github.com/alibaba/Sentinel
 
 ARG JAVA_VERSION=17
-ARG SENTINEL_VERSION
 
 FROM eclipse-temurin:${JAVA_VERSION}-jre
+
+# Declare ARG after FROM to use in RUN
+ARG SENTINEL_VERSION
 
 LABEL maintainer="ygqygq2" \
   description="Alibaba Sentinel Dashboard"
